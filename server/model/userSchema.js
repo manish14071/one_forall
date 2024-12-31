@@ -12,7 +12,7 @@ export const getUserByIdService = async (id) => {
 
 export const createUsersService = async (name, email) => {
   const result = await pool.query(
-    "INSERT INTO users (name,email) VALUES ($1, $2) RETURNING *"[name, email]
+    "INSERT INTO users (name,email) VALUES ($1, $2) RETURNING *",[name, email]
   );
   return result.rows[0];
 };
