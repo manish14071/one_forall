@@ -1,5 +1,6 @@
 import prisma from "../db/db.config.js";
-
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken"
 const handleResponse = (res, status, message, data = null) => {
   res.status(status).json({
     status,
@@ -21,13 +22,16 @@ export const createUser = async (req, res) => {
       message: "email already exists,user another email",
     });
   }
+
+  const salt = bcrypt.genSaltSync(10);
+  const hash = bcrypt.hashSync(password, salt);
   const newUser = await prisma.users.create({
     data: {
       firstName: firstName,
       lastName: lastName,
       email: email,
       age: age,
-      password: password,
+      password: hash,
     },
   });
 
@@ -100,5 +104,50 @@ export const deleteUser = async (req, res, next) => {
     handleResponse(res, 200, "user deleted successfully");
   } catch (err) {
     next(err);
+  }
+};
+
+// login for Users
+
+export const userLogin = async (req, res, next) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await prisma.users.findFirst({
+      where: {
+        email: email,
+      },
+    });
+  
+    if (!user) {
+      return handleResponse.json(
+        res,
+        401,
+        "login email does not exist",
+        
+      );
+    }
+  
+    const comparePassword = await bcrypt.compare(password, user.password);
+  
+    if (!comparePassword) {
+      return res.json({message:"credentials invalid"}).status(401)
+    }
+
+    const payload={
+      id:user.id,
+      firstName:user.firstName,
+      lastName:user.lastName,
+      age:user.age,
+      password:user.password
+    }
+const token=jwt.sign(payload,process.env.JWT_SECRET_KEY)
+
+
+return res.json({message:"login successfully",token}).status(201)
+
+  } catch (err) {
+    next(err);
+    
   }
 };
