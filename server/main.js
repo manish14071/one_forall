@@ -1,10 +1,10 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import pool from "./db/connect.js";
+
 
 import errorHandling from "./middleware/errorHandle.js";
-import createUserTable from "./data/createUserTable.js";
+
 import router from "../server/routes/userRoutes.js";
 
 dotenv.config();
@@ -23,7 +23,7 @@ app.use("/api", router);
 
 app.use(errorHandling);
 
-createUserTable();
+
 
 app.get("/", async (req, res) => {
   const result = await pool.query("SELECT current_database()");
